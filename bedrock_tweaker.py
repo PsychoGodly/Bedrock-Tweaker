@@ -3,10 +3,28 @@ import shutil
 import subprocess
 import ctypes
 
+def has_full_control_permissions(file_path):
+    """
+    Check if the file has full control permissions for Everyone.
+    """
+    try:
+        command = f'icacls "{file_path}"'
+        result = subprocess.run(command, shell=True, capture_output=True, text=True)
+        if "Everyone:(F)" in result.stdout:
+            return True
+        return False
+    except subprocess.CalledProcessError as e:
+        print(f"Error checking permissions for {file_path}: {e}")
+        return False
+
 def set_full_control_permissions(file_path):
     """
     Set full control permissions for Everyone on the specified file.
     """
+    if has_full_control_permissions(file_path):
+        print(f"Full control permissions already granted for {file_path}")
+        return True
+    
     try:
         command = f'icacls "{file_path}" /grant Everyone:F /T'
         result = subprocess.run(command, check=True, shell=True, capture_output=True, text=True)
@@ -22,7 +40,7 @@ def copy_and_replace_file(src, dst):
     Copy a file from src to dst, replacing the existing file if necessary.
     """
     if os.path.exists(dst):
-        print(f"File exists at {dst}, setting permissions...")
+        print(f"File exists at {dst}, checking and setting permissions...")
         # Check and set permissions before replacing the file
         if not set_full_control_permissions(dst):
             return False
