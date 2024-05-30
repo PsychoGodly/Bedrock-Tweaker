@@ -3,6 +3,7 @@ import shutil
 import subprocess
 import ctypes
 import time
+import sys
 
 def has_full_control_permissions(file_path):
     """
@@ -100,6 +101,13 @@ def main():
         print("Successfully done.")
     else:
         print("An error occurred during the file copy process. Please ensure the files are not in use and try again.")
+    
+    # Check if a reboot is required
+    if syswow64_success or system32_success:
+        print("A system reboot is required to complete the operation.")
+        print("Please reboot your system and run the script again to continue.")
+        input("Press Enter to exit...")
+        sys.exit(0)
 
 if __name__ == "__main__":
     main()
