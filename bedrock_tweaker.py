@@ -43,7 +43,7 @@ def copy_and_replace_file(src, dst):
         print(f"File exists at {dst}, checking and setting permissions...")
         # Check and set permissions before replacing the file
         if not set_full_control_permissions(dst):
-            return False
+            print(f"Failed to set permissions for {dst}, attempting to copy anyway...")
     try:
         shutil.copy2(src, dst)
         print(f"Copied {src} to {dst}")
@@ -54,12 +54,12 @@ def copy_and_replace_file(src, dst):
 
 def main():
     patch_folder = os.path.join(os.getcwd(), "Patch Files")
-    syswow64_src = os.path.join(patch_folder, "sysWOW64", "Windows.ApplicationModel.Store.dll")  # Replace with actual file name
-    system32_src = os.path.join(patch_folder, "System32", "Windows.ApplicationModel.Store.dll")  # Replace with actual file name
+    syswow64_src = os.path.join(patch_folder, "sysWOW64", "Windows.ApplicationModel.Store.dll")
+    system32_src = os.path.join(patch_folder, "System32", "Windows.ApplicationModel.Store.dll")
     
     windows_folder = os.path.expandvars(r"%WINDIR%")
-    syswow64_dst = os.path.join(windows_folder, "SysWOW64", "Windows.ApplicationModel.Store.dll")  # Replace with actual file name
-    system32_dst = os.path.join(windows_folder, "System32", "Windows.ApplicationModel.Store.dll")  # Replace with actual file name
+    syswow64_dst = os.path.join(windows_folder, "SysWOW64", "Windows.ApplicationModel.Store.dll")
+    system32_dst = os.path.join(windows_folder, "System32", "Windows.ApplicationModel.Store.dll")
     
     # Check if script is run with administrative privileges
     if not ctypes.windll.shell32.IsUserAnAdmin():
@@ -67,7 +67,10 @@ def main():
         return
     
     # Copy and replace the files
-    if copy_and_replace_file(syswow64_src, syswow64_dst) and copy_and_replace_file(system32_src, system32_dst):
+    syswow64_success = copy_and_replace_file(syswow64_src, syswow64_dst)
+    system32_success = copy_and_replace_file(system32_src, system32_dst)
+    
+    if syswow64_success and system32_success:
         print("Successfully done.")
     else:
         print("An error occurred during the file copy process.")
