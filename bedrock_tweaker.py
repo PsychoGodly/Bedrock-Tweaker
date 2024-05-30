@@ -37,6 +37,20 @@ def set_full_control_permissions(file_path):
         print(e.output)
         return False
 
+def take_ownership(file_path):
+    """
+    Take ownership of the specified file.
+    """
+    try:
+        command = f'takeown /F "{file_path}" /A /R /D Y'
+        result = subprocess.run(command, check=True, shell=True, capture_output=True, text=True)
+        print(result.stdout)
+        return True
+    except subprocess.CalledProcessError as e:
+        print(f"Error taking ownership of {file_path}: {e}")
+        print(e.output)
+        return False
+
 def remove_read_only_attribute(file_path):
     """
     Remove the read-only attribute from the specified file.
@@ -49,7 +63,7 @@ def remove_read_only_attribute(file_path):
         print(f"Error removing read-only attribute from {file_path}: {e}")
         return False
 
-def copy_and_replace_file(src, dst, max_retries=5, delay=10, force_replace=False):
+def copy_and_replace_file(src, dst, max_retries=5, delay=10):
     """
     Copy a file from src to dst, replacing the existing file if necessary.
     Retries the operation up to max_retries times if the file is in use.
@@ -64,9 +78,8 @@ def copy_and_replace_file(src, dst, max_retries=5, delay=10, force_replace=False
     
     for attempt in range(max_retries):
         try:
-            # Attempt to force replace the file by opening it with exclusive access
-            with open(dst, "wb") as f:
-                pass
+            # Attempt to force replace the file by taking ownership
+            take_ownership(dst)
             
             shutil.copy2(src, dst)
             print(f"Copied {src} to {dst}")
@@ -94,8 +107,8 @@ def main():
         return
     
     # Copy and replace the files
-    syswow64_success = copy_and_replace_file(syswow64_src, syswow64_dst, force_replace=True)
-    system32_success = copy_and_replace_file(system32_src, system32_dst, force_replace=True)
+    syswow64_success = copy_and_replace_file(syswow64_src, syswow64_dst)
+    system32_success = copy_and_replace_file(system32_src, system32_dst)
     
     if syswow64_success and system32_success:
         print("Successfully done.")
@@ -110,4 +123,4 @@ def main():
         sys.exit(0)
 
 if __name__ == "__main__":
-    main()
+   
