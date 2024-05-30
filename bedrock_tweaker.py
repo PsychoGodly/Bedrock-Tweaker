@@ -36,6 +36,18 @@ def set_full_control_permissions(file_path):
         print(e.output)
         return False
 
+def remove_read_only_attribute(file_path):
+    """
+    Remove the read-only attribute from the specified file.
+    """
+    try:
+        os.chmod(file_path, 0o777)
+        print(f"Read-only attribute removed from {file_path}")
+        return True
+    except Exception as e:
+        print(f"Error removing read-only attribute from {file_path}: {e}")
+        return False
+
 def copy_and_replace_file(src, dst, max_retries=5, delay=10, force_replace=False):
     """
     Copy a file from src to dst, replacing the existing file if necessary.
@@ -46,6 +58,8 @@ def copy_and_replace_file(src, dst, max_retries=5, delay=10, force_replace=False
         # Check and set permissions before replacing the file
         if not set_full_control_permissions(dst):
             print(f"Failed to set permissions for {dst}, attempting to copy anyway...")
+        if not remove_read_only_attribute(dst):
+            print(f"Failed to remove read-only attribute for {dst}, attempting to copy anyway...")
     
     for attempt in range(max_retries):
         try:
