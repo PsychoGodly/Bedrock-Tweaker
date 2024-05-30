@@ -2,6 +2,7 @@ import os
 import shutil
 import subprocess
 import ctypes
+import time
 
 def has_full_control_permissions(file_path):
     """
@@ -35,22 +36,29 @@ def set_full_control_permissions(file_path):
         print(e.output)
         return False
 
-def copy_and_replace_file(src, dst):
+def copy_and_replace_file(src, dst, max_retries=5, delay=10):
     """
     Copy a file from src to dst, replacing the existing file if necessary.
+    Retries the operation up to max_retries times if the file is in use.
     """
     if os.path.exists(dst):
         print(f"File exists at {dst}, checking and setting permissions...")
         # Check and set permissions before replacing the file
         if not set_full_control_permissions(dst):
             print(f"Failed to set permissions for {dst}, attempting to copy anyway...")
-    try:
-        shutil.copy2(src, dst)
-        print(f"Copied {src} to {dst}")
-        return True
-    except Exception as e:
-        print(f"Error copying file from {src} to {dst}: {e}")
-        return False
+    
+    for attempt in range(max_retries):
+        try:
+            shutil.copy2(src, dst)
+            print(f"Copied {src} to {dst}")
+            return True
+        except Exception as e:
+            if attempt < max_retries - 1:
+                print(f"Error copying file from {src} to {dst}: {e}. Retrying in {delay} seconds...")
+                time.sleep(delay)
+            else:
+                print(f"Error copying file from {src} to {dst} after {max_retries} attempts: {e}")
+                return False
 
 def main():
     patch_folder = os.path.join(os.getcwd(), "Patch Files")
@@ -73,7 +81,7 @@ def main():
     if syswow64_success and system32_success:
         print("Successfully done.")
     else:
-        print("An error occurred during the file copy process.")
+        print("An error occurred during the file copy process. Please ensure the files are not in use and try again.")
 
 if __name__ == "__main__":
     main()
