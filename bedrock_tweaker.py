@@ -36,7 +36,7 @@ def set_full_control_permissions(file_path):
         print(e.output)
         return False
 
-def copy_and_replace_file(src, dst, max_retries=5, delay=10):
+def copy_and_replace_file(src, dst, max_retries=5, delay=10, force_replace=False):
     """
     Copy a file from src to dst, replacing the existing file if necessary.
     Retries the operation up to max_retries times if the file is in use.
@@ -49,6 +49,10 @@ def copy_and_replace_file(src, dst, max_retries=5, delay=10):
     
     for attempt in range(max_retries):
         try:
+            # Attempt to force replace the file by opening it with exclusive access
+            with open(dst, "wb") as f:
+                pass
+            
             shutil.copy2(src, dst)
             print(f"Copied {src} to {dst}")
             return True
@@ -75,8 +79,8 @@ def main():
         return
     
     # Copy and replace the files
-    syswow64_success = copy_and_replace_file(syswow64_src, syswow64_dst)
-    system32_success = copy_and_replace_file(system32_src, system32_dst)
+    syswow64_success = copy_and_replace_file(syswow64_src, syswow64_dst, force_replace=True)
+    system32_success = copy_and_replace_file(system32_src, system32_dst, force_replace=True)
     
     if syswow64_success and system32_success:
         print("Successfully done.")
