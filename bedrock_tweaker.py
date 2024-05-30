@@ -9,10 +9,12 @@ def set_full_control_permissions(file_path):
     """
     try:
         command = f'icacls "{file_path}" /grant Everyone:F /T'
-        subprocess.run(command, check=True, shell=True)
+        result = subprocess.run(command, check=True, shell=True, capture_output=True, text=True)
+        print(result.stdout)
         return True
     except subprocess.CalledProcessError as e:
         print(f"Error setting permissions for {file_path}: {e}")
+        print(e.output)
         return False
 
 def copy_and_replace_file(src, dst):
@@ -20,20 +22,26 @@ def copy_and_replace_file(src, dst):
     Copy a file from src to dst, replacing the existing file if necessary.
     """
     if os.path.exists(dst):
+        print(f"File exists at {dst}, setting permissions...")
         # Check and set permissions before replacing the file
         if not set_full_control_permissions(dst):
             return False
-    shutil.copy2(src, dst)
-    return True
+    try:
+        shutil.copy2(src, dst)
+        print(f"Copied {src} to {dst}")
+        return True
+    except Exception as e:
+        print(f"Error copying file from {src} to {dst}: {e}")
+        return False
 
 def main():
     patch_folder = os.path.join(os.getcwd(), "Patch Files")
-    syswow64_src = os.path.join(patch_folder, "sysWOW64", "Windows.ApplicationModel.Store.dll")  
-    system32_src = os.path.join(patch_folder, "System32", "Windows.ApplicationModel.Store.dll")  
+    syswow64_src = os.path.join(patch_folder, "sysWOW64", "Windows.ApplicationModel.Store.dll")  # Replace with actual file name
+    system32_src = os.path.join(patch_folder, "System32", "Windows.ApplicationModel.Store.dll")  # Replace with actual file name
     
     windows_folder = os.path.expandvars(r"%WINDIR%")
-    syswow64_dst = os.path.join(windows_folder, "SysWOW64", "Windows.ApplicationModel.Store.dll")  
-    system32_dst = os.path.join(windows_folder, "System32", "Windows.ApplicationModel.Store.dll")  
+    syswow64_dst = os.path.join(windows_folder, "SysWOW64", "Windows.ApplicationModel.Store.dll")  # Replace with actual file name
+    system32_dst = os.path.join(windows_folder, "System32", "Windows.ApplicationModel.Store.dll")  # Replace with actual file name
     
     # Check if script is run with administrative privileges
     if not ctypes.windll.shell32.IsUserAnAdmin():
