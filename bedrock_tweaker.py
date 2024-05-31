@@ -43,7 +43,7 @@ def take_ownership(file_path):
     """
     try:
         command = f'takeown /F "{file_path}" /A /R /D Y'
-        result = subprocess.run(command, check=True, shell=True, capture_output=True, text=True)
+        result = subprocess.run(command, shell=True, capture_output=True, text=True)
         print(result.stdout)
         return True
     except subprocess.CalledProcessError as e:
@@ -75,12 +75,11 @@ def copy_and_replace_file(src, dst, max_retries=5, delay=10):
             print(f"Failed to set permissions for {dst}, attempting to copy anyway...")
         if not remove_read_only_attribute(dst):
             print(f"Failed to remove read-only attribute for {dst}, attempting to copy anyway...")
+        if not take_ownership(dst):
+            print(f"Failed to take ownership of {dst}, attempting to copy anyway...")
     
     for attempt in range(max_retries):
         try:
-            # Attempt to force replace the file by taking ownership
-            take_ownership(dst)
-            
             shutil.copy2(src, dst)
             print(f"Copied {src} to {dst}")
             return True
