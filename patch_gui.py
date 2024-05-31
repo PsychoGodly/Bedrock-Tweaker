@@ -11,7 +11,7 @@ def patch_files():
 
 def create_gui():
     root = tk.Tk()
-    root.title("Bedrock Tweaker")
+    root.title("Bedrock Tweaker by Psycho")
 
     patch_button = tk.Button(root, text="Patch", command=patch_files)
     patch_button.pack(pady=20)
