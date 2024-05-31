@@ -126,3 +126,4 @@ if ($syswow64Success -or $system32Success) {
     Write-Warning "A system reboot is required to complete the operation."
     Write-Host "Please reboot your system and run the script again to continue."
     Read-Host -Prompt "Press Enter to exit..."
+}
