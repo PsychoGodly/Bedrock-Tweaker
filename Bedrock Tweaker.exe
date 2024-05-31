@@ -16,24 +16,31 @@ namespace MaterialDesignApp
 
         private void btnExecute_Click(object sender, EventArgs e)
         {
-            Process process = new Process();
-            process.StartInfo.FileName = "cmd.exe";
-            process.StartInfo.Arguments = "/c bedrock_tweaker.bat";
-            process.StartInfo.RedirectStandardOutput = true;
-            process.StartInfo.UseShellExecute = false;
-            process.StartInfo.CreateNoWindow = true;
-            process.Start();
-
-            string output = process.StandardOutput.ReadToEnd();
-            process.WaitForExit();
-
-            if (process.ExitCode == 0)
+            try
             {
-                MessageBox.Show("Success!");
+                Process process = new Process();
+                process.StartInfo.FileName = "cmd.exe";
+                process.StartInfo.Arguments = "/c bedrock_tweaker.bat";
+                process.StartInfo.RedirectStandardOutput = true;
+                process.StartInfo.UseShellExecute = false;
+                process.StartInfo.CreateNoWindow = true;
+                process.Start();
+
+                string output = process.StandardOutput.ReadToEnd();
+                process.WaitForExit();
+
+                if (process.ExitCode == 0)
+                {
+                    MessageBox.Show("Success!");
+                }
+                else
+                {
+                    MessageBox.Show("An error occurred during the script execution. Please check the logs for more information.");
+                }
             }
-            else
+            catch (Exception ex)
             {
-                MessageBox.Show("An error occurred during the file copy process. Please ensure the files are not in use and try again. A system reboot is required to complete the operation. Please reboot your system and run the script again to continue.");
+                MessageBox.Show($"An error occurred: {ex.Message}");
             }
         }
     }
