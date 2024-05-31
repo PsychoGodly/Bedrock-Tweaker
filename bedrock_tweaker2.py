@@ -6,6 +6,7 @@ import time
 import sys
 import tkinter as tk
 from tkinter import messagebox
+from tkinter.ttk import Progressbar
 
 def has_full_control_permissions(file_path):
     try:
@@ -53,7 +54,7 @@ def remove_read_only_attribute(file_path):
         print(f"Error removing read-only attribute from {file_path}: {e}")
         return False
 
-def copy_and_replace_file(src, dst, max_retries=5, delay=10):
+def copy_and_replace_file(src, dst, progress_var, max_retries=5, delay=1):
     if os.path.exists(dst):
         print(f"File exists at {dst}, checking and setting permissions...")
         if not set_full_control_permissions(dst):
@@ -63,6 +64,7 @@ def copy_and_replace_file(src, dst, max_retries=5, delay=10):
         if not take_ownership(dst):
             print(f"Failed to take ownership of {dst}, attempting to copy anyway...")
     
+    total_progress = 0
     for attempt in range(max_retries):
         try:
             shutil.copy2(src, dst)
@@ -71,12 +73,14 @@ def copy_and_replace_file(src, dst, max_retries=5, delay=10):
         except Exception as e:
             if attempt < max_retries - 1:
                 print(f"Error copying file from {src} to {dst}: {e}. Retrying in {delay} seconds...")
+                total_progress += 20  # Increment progress by 20% for each retry
+                progress_var.set(total_progress)
                 time.sleep(delay)
             else:
                 print(f"Error copying file from {src} to {dst} after {max_retries} attempts: {e}")
                 return False
 
-def patch_files():
+def patch_files(progress_var):
     patch_folder = os.path.join(os.getcwd(), "Patch Files")
     syswow64_src = os.path.join(patch_folder, "sysWOW64", "Windows.ApplicationModel.Store.dll")
     system32_src = os.path.join(patch_folder, "System32", "Windows.ApplicationModel.Store.dll")
@@ -89,13 +93,23 @@ def patch_files():
         messagebox.showerror("Error", "Please run the script with administrative privileges.")
         return
     
-    syswow64_success = copy_and_replace_file(syswow64_src, syswow64_dst)
-    system32_success = copy_and_replace_file(system32_src, system32_dst)
+    total_progress = 0
     
-    if syswow64_success and system32_success:
-        messagebox.showinfo("Success", "Successfully patched.")
+    # Patching syswow64
+    progress_var.set(total_progress)
+    syswow64_success = copy_and_replace_file(syswow64_src, syswow64_dst, progress_var)
+    if syswow64_success:
+        total_progress += 50  # Increment progress by 50% for syswow64 success
     else:
-        messagebox.showerror("Error", "An error occurred during the file copy process. Please ensure the files are not in use and try again. A system reboot is required to complete the operation. Please reboot your system and run the script again to continue.")
+        messagebox.showerror("Error", "An error occurred during the file copy process for syswow64. Please ensure the file is not in use and try again.")
+    
+    # Patching system32
+    progress_var.set(total_progress)
+    system32_success = copy_and_replace_file(system32_src, system32_dst, progress_var)
+    if system32_success:
+        total_progress += 50  # Increment progress by 50% for system32 success
+    else:
+        messagebox.showerror("Error", "An error occurred during the file copy process for system32. Please ensure the file is not in use and try again.")
     
     if syswow64_success or system32_success:
         messagebox.showwarning("Reboot Required", "A system reboot is required to complete the operation. Please reboot your system and run the script again to continue.")
@@ -103,9 +117,15 @@ def patch_files():
 def create_gui():
     root = tk.Tk()
     root.title("Bedrock Tweaker")
-
-    patch_button = tk.Button(root, text="Patch", command=patch_files)
-    patch_button.pack(pady=20)
+    root.geometry("300x150")
+    root.iconbitmap("icon.ico")  # Set custom icon
+    
+    progress_var = tk.DoubleVar()
+    progress_bar = Progressbar(root, orient="horizontal", length=200, mode="determinate", variable=progress_var)
+    progress_bar.pack(pady=20)
+    
+    patch_button = tk.Button(root, text="Patch", command=lambda: patch_files(progress_var))
+    patch_button.pack(pady=10)
 
     root.mainloop()
 
