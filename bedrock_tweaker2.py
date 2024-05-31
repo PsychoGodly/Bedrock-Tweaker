@@ -118,7 +118,7 @@ def create_gui():
     root = tk.Tk()
     root.title("Bedrock Tweaker")
     root.geometry("300x150")
-    root.iconbitmap("icon.ico")  # Set custom icon
+    root.iconbitmap("/icon.ico")  # Set custom icon
     
     progress_var = tk.DoubleVar()
     progress_bar = Progressbar(root, orient="horizontal", length=200, mode="determinate", variable=progress_var)
